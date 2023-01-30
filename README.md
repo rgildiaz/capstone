@@ -1,15 +1,13 @@
 # fp
 
 ## App
-
-## Canvas
-The rendering surface for visual elements
+A representation of the entire app.
 
 ## Conductor
 Responsible for sending instructions to Canvas and Orchestra. Maps input to sound + visuals
 
-## Orchestra
-Renders audio based on instructions from Conductor.
+## Canvas
+The rendering surface for visual elements.
 
-## Some way to read inputs
-Feed raw/cleaned inputs to Conductor
+## Orchestra
+Contains all instruments. Sends audio instructions to the appropriate channel based on input from Conductor.

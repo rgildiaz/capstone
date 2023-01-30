@@ -1,3 +1,5 @@
+import Instrument from "./Instrument";
+
 class Orchestra {
     
 }
