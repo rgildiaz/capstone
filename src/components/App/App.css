@@ -1,3 +1,19 @@
 .App {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#list {
+  width: fit-content;
+  background-color: rgb(239, 239, 239);
+  padding: 7em 5em;
+}
+
+.item {
+  width: 600px;
+  height: 400px;
+  border: 1px solid black;
+  border-radius: 10px;
 }
