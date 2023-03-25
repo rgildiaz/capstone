@@ -15,7 +15,7 @@ const StartupOverlay = (props) => {
   return (
     <div className={overlayClass}>
       <div onClick={handleClick}>
-        <h1 className="title">click to start</h1>
+        <h1 className="title">start</h1>
       </div>
     </div>
   );

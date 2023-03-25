@@ -5,6 +5,7 @@ import C4 from "../../../audio/hmm/C4.wav";
 
 /**
  * Setup the Tone.js environment and the audio elements that will be played.
+ * @todo generate score
  */
 const setup = () => {
   // Setup the audio context
@@ -12,11 +13,16 @@ const setup = () => {
   const audioCTX = new AudioContext();
   Tone.setContext(audioCTX);
 
-  // These oscs will be returned to be used in the main thread
-  let out = {
-    ugens: {},
-    loops: {},
-  };
+  // Tone Transport properties
+  Tone.Transport.bpm.value = 120;
+  Tone.Transport.loop = true;
+  Tone.Transport.loopStart = "0:0:0";
+  Tone.Transport.loopEnd = "4:0:0";
+
+  let out = [
+    {}, // Audio units
+    {}, // loops
+  ];
 
   const hmm = new Tone.Sampler({
     urls: {
@@ -25,20 +31,24 @@ const setup = () => {
       C4: C4,
     },
     onload: () => {
-      hmm.triggerAttackRelease(["C3", "E3", "G3", "B3"], 0.5);
+      // hmm.triggerAttackRelease(["C3", "E3", "G3", "B3"], 2);
+      console.log("hmmsampload");
     },
-  });
+  }).toDestination();
 
-  out["ugens"]["hmm"] = hmm;
+  const simple = new Tone.Oscillator(440, "sine").toDestination();
+
+  out[0]["hmm"] = hmm;
+  out[0]["simple"] = simple;
 
   const hmmloop = new Tone.Loop((time) => {
     // triggered every whole note.
     console.log(time);
   }, "1n");
 
-  out["loops"]["hmm"] = hmmloop;
+  out[1]["hmm"] = hmmloop;
 
   return out;
 };
 
-export default setup;
+export { setup };

@@ -1,51 +1,58 @@
-import "./App.css";
-import { React, useRef } from "react";
+import { React, useState, useEffect, useRef } from "react";
 import * as Tone from "tone";
 
-import setup from "./scripts/setup";
+import Controller from "../Controller";
 import { StartupOverlay } from "../Layout";
 
-const styles = {
-  backgroundColor: "lightgray",
-  height: "100vh",
-  display: "flex",
-  flexDirection: "column",
-};
+import "./App.css";
+import { setup, score } from "./scripts";
 
 function App(props) {
-  // using refs persists these elements across re-renders.
-  const oscs = useRef();
+  const [isLoaded, setLoaded] = useState(false);
+  const [firstClick, setFirstClick] = useState(true);
+
+  /** A reference to the sound-generating elements that have been setup */
+  const s = useRef(null);
+
+  /** A reference to the loops that have been setup */
+  const l = useRef(null);
+
+  useEffect(() => {
+    [s.current, l.current] = setup();
+    Tone.loaded().then(() => {
+      setLoaded(true);
+      console.log("Loaded!");
+    });
+  }, []);
 
   // onclick
   const play = () => {
-    // oscs.current['ugens']['hmm'].triggerAttackRelease(["C3", "E3", "G3", "B3"], 0.5);
-    let loop = oscs.current["loops"]["hmm"];
-    if (loop.state === "started") {
-      loop.stop();
-    } else {
-      loop.start();
-    }
-
-    // console.log(oscs.current);
-    console.log(`loop state:      ${loop.state}`);
-    console.log(`oscs loop state: ${oscs.current["loops"]["hmm"].state}`);
+    s.current["hmm"].triggerAttack(["C3", "E4"], Tone.now());
+    console.log(s.current["hmm"]);
   };
 
-  const handleClick = () => {
-    if (Tone.Transport.state !== "started") {
-      console.log("not started")
-      oscs.current = setup();
-      Tone.Transport.start();
-    } else {
-      console.log('should be playing')
-      play();
+  const handleClick = async () => {
+    console.log(Tone.Transport.state);
+    if (firstClick) {
+      await Tone.start();
+      await Tone.Transport.start();
+      setFirstClick(false);
     }
-    console.log(Tone.Transport.state)
+
+    // play();
+    console.log(score([1,2,4], 16))
   };
 
   return (
-    <div className="App" style={{ ...styles }}>
-      <StartupOverlay onClick={handleClick} />
+    <div className="App">
+      {!isLoaded ? (
+        <div>Loading...</div>
+      ) : (
+        <>
+          <StartupOverlay onClick={handleClick} />
+          <Controller />
+        </>
+      )}
     </div>
   );
 }

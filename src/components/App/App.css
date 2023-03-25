@@ -3,6 +3,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  background-color: "#FAF9F0";
+  height: "100vh";
 }
 
 #list {
