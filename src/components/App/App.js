@@ -2,7 +2,7 @@ import { React, useState, useEffect, useRef } from "react";
 import * as Tone from "tone";
 
 import Controller from "../Controller";
-import { StartupOverlay } from "../Layout";
+import { StartupOverlay, AboutOverlay } from "../Layout";
 
 import "./App.css";
 import { setup, score } from "../../scripts";
@@ -10,7 +10,9 @@ import Tracks from "../Tracks";
 
 function App(props) {
   const [isLoaded, setLoaded] = useState(false);
+  const [started, setStarted] = useState(false);
   const [firstClick, setFirstClick] = useState(true);
+  const [aboutClass, setAboutClass] = useState("hidden");
 
   /** A reference to the sound-generating elements that have been setup */
   const s = useRef(null);
@@ -40,19 +42,30 @@ function App(props) {
       setFirstClick(false);
     }
 
+    setStarted(true);
+
     // play();
     console.log(score([1,2,4], 16))
+  };
+
+  const showAbout = () => {
+    if (aboutClass === "hidden") {
+      setAboutClass("show");
+    } else {
+      setAboutClass("hidden");
+    }
   };
 
   return (
     <div className="App">
       {!isLoaded ? (
-        <div>Loading...</div>
+        <div className="loading">Loading...</div>
       ) : (
         <>
-          <StartupOverlay onClick={handleClick} />
+          <StartupOverlay onClick={handleClick} onAboutClick={showAbout}/>
+          <AboutOverlay class={"about-overlay " + aboutClass} close={showAbout}/>
           <Controller />
-          <Tracks />
+          <Tracks started={started}/>
         </>
       )}
     </div>

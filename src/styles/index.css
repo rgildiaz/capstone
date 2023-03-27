@@ -4,6 +4,7 @@ body {
   font-weight: 300;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100%;
 }
 
 code {
@@ -12,13 +13,13 @@ code {
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: calc(1.5rem + 2vw);
   font-weight: 300;
   margin: 0;
 }
 
 h2 {
-  font-size: 2rem;
+  font-size: calc(1.25rem + 1vw);
   font-weight: 300;
   margin: 0;
 }

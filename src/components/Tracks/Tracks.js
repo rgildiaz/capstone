@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 
 import Track from "./Track";
 import * as scripts from "../../scripts";
+import "./tracks.css"
 
 const Tracks = (props) => {
   const [isLoaded, setLoaded] = useState(false);
@@ -9,7 +10,7 @@ const Tracks = (props) => {
 
   useEffect(() => {
     // console.log(config);
-    const s = scripts.score([1, 2, 4], 16);
+    const s = scripts.score([1, 2, 4, 8], 16);
     setScore(s);
   }, []);
 
@@ -24,7 +25,7 @@ const Tracks = (props) => {
     console.log(score);
     if (score) {
       return score.map((track, i) => {
-        return <Track key={i} trackNum={i} track={track} />;
+        return <Track key={i} trackNum={i} track={track} className="track" />;
       });
     }
   };
