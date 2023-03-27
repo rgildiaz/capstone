@@ -1,0 +1,10 @@
+.tracks-container {
+  overflow: hidden;
+}
+
+.track {
+  margin: 0.25rem 0;
+  width: 100vw;
+  max-height: 10vh;
+  min-height: 3vh;
+}
