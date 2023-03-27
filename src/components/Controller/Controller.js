@@ -1,22 +1,20 @@
-import { React, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+
 import useMousePosition from "../../hooks/useMousePosition";
+import * as scripts from "../../scripts";
 
 /**
  * Read courser and scroll position and send messages to Tone and Two.
  */
 const Controller = (props) => {
-  // This triggers a rerender
+  const [score, setScore] = useState(null);
   const mousePosition = useMousePosition();
 
-  useEffect(() => {}, []);
-
-  return (
-    <>
-      <h2>{mousePosition.y}</h2>
-    </>
-  );
+  useEffect(() => {
+    // console.log(config);
+    const s = scripts.score([1, 2, 4], 16);
+    setScore(s);
+  }, []);
 };
-
-
 
 export default Controller;

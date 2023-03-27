@@ -1,7 +1,7 @@
 import * as Tone from "tone";
-import C3 from "../../../audio/hmm/C3.wav";
-import G3 from "../../../audio/hmm/G3.wav";
-import C4 from "../../../audio/hmm/C4.wav";
+import C3 from "../audio/hmm/C3.wav";
+import G3 from "../audio/hmm/G3.wav";
+import C4 from "../audio/hmm/C4.wav";
 
 /**
  * Setup the Tone.js environment and the audio elements that will be played.

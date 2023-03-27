@@ -1,6 +1,7 @@
 body {
   margin: 0;
-  font-family: serif;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 300;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -8,4 +9,16 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 300;
+  margin: 0;
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: 300;
+  margin: 0;
 }

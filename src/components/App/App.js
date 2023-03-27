@@ -5,7 +5,8 @@ import Controller from "../Controller";
 import { StartupOverlay } from "../Layout";
 
 import "./App.css";
-import { setup, score } from "./scripts";
+import { setup, score } from "../../scripts";
+import Tracks from "../Tracks";
 
 function App(props) {
   const [isLoaded, setLoaded] = useState(false);
@@ -51,6 +52,7 @@ function App(props) {
         <>
           <StartupOverlay onClick={handleClick} />
           <Controller />
+          <Tracks />
         </>
       )}
     </div>
