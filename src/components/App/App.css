@@ -1,14 +1,14 @@
 .App {
   text-align: center;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: fit-content fit-content;
+  grid-template-rows: 100vh;
+  grid-template-areas: "startup main";
   background-color: #FAF9F0;
   height: 100vh;
-  /* FIX THIS content not hidden properly */
-  width: 100%;
+  width: fit-content;
   overflow: hidden;
+  white-space: nowrap;
 }
 
 .loading {
@@ -19,4 +19,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.startup {
+  grid-area: startup;
+}
+
+.tracks {
+  grid-area: main;
 }

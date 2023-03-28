@@ -23,3 +23,9 @@ h2 {
   font-weight: 300;
   margin: 0;
 }
+
+h3 {
+  font-size: calc(0.75rem + 1vw);
+  font-weight: 300;
+  margin: 0;
+}

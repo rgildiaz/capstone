@@ -62,10 +62,10 @@ function App(props) {
         <div className="loading">Loading...</div>
       ) : (
         <>
-          <StartupOverlay onClick={handleClick} onAboutClick={showAbout}/>
+          <StartupOverlay className="startup" onClick={handleClick} onAboutClick={showAbout}/>
           <AboutOverlay class={"about-overlay " + aboutClass} close={showAbout}/>
           <Controller />
-          <Tracks started={started}/>
+          <Tracks className="tracks" started={started}/>
         </>
       )}
     </div>

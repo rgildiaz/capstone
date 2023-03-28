@@ -15,8 +15,8 @@ const StartupOverlay = (props) => {
 
   return (
     <div className={"startup" + overlayClass}>
-      <div className={"title-container" + textClass} onClick={handleClick}>
-        <h1 className="title">MUSIC FOR WEB BROWSERS</h1>
+      <div className={"title-container" + textClass}>
+        <h1 onClick={handleClick} className="title">MUSIC FOR WEB BROWSERS</h1>
         <h3 className="subtitle">subtitle :)</h3>
       </div>
       <footer className={textClass}>

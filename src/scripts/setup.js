@@ -8,46 +8,50 @@ import C4 from "../audio/hmm/C4.wav";
  * @todo generate score
  */
 const setup = () => {
-  // Setup the audio context
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  const audioCTX = new AudioContext();
-  Tone.setContext(audioCTX);
-
-  // Tone Transport properties
-  Tone.Transport.bpm.value = 120;
-  Tone.Transport.loop = true;
-  Tone.Transport.loopStart = "0:0:0";
-  Tone.Transport.loopEnd = "4:0:0";
+  try {
+    // Tone Transport properties
+    Tone.Transport.bpm.value = 120;
+    Tone.Transport.loop = true;
+    Tone.Transport.loopStart = "0:0:0";
+    Tone.Transport.loopEnd = "4:0:0";
+  } catch (err) {
+    console.log("Tone Transport could not be set up");
+  }
 
   let out = [
     {}, // Audio units
     {}, // loops
   ];
 
-  const hmm = new Tone.Sampler({
-    urls: {
-      C3: C3,
-      G3: G3,
-      C4: C4,
-    },
-    onload: () => {
-      // hmm.triggerAttackRelease(["C3", "E3", "G3", "B3"], 2);
-      console.log("hmmsampload");
-    },
-  }).toDestination();
+  try {
+    const hmm = new Tone.Sampler({
+      urls: {
+        C3: C3,
+        G3: G3,
+        C4: C4,
+      },
+      onload: () => {
+        // hmm.triggerAttackRelease(["C3", "E3", "G3", "B3"], 2);
+        console.log("hmmsampload");
+      },
+    }).toDestination();
+    out[0]["hmm"] = hmm;
+  } catch (err) {
+    console.log("Could not load hmm sampler");
+    console.log(err)
+  }
 
-  const simple = new Tone.Oscillator(440, "sine").toDestination();
+  try {
+    const hmmloop = new Tone.Loop((time) => {
+      // triggered every whole note.
+      console.log(time);
+    }, "1n");
+    out[1]["hmm"] = hmmloop;
+  } catch (err) {
+    console.log("Could not load hmm loop");
+  }
 
-  out[0]["hmm"] = hmm;
-  out[0]["simple"] = simple;
-
-  const hmmloop = new Tone.Loop((time) => {
-    // triggered every whole note.
-    console.log(time);
-  }, "1n");
-
-  out[1]["hmm"] = hmmloop;
-
+  console.log(out)
   return out;
 };
 
