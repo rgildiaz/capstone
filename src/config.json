@@ -1,5 +1,6 @@
 {
-  "tracks": 4,
+  "tracks": 1,
   "rgb": [28, 93, 153],
-  "url": "../../audio"
+  "url": "../../audio",
+  "track_length": 10
 }

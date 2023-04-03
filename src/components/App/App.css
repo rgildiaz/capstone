@@ -20,11 +20,3 @@
   align-items: center;
   justify-content: center;
 }
-
-.startup {
-  grid-area: startup;
-}
-
-.tracks {
-  grid-area: main;
-}

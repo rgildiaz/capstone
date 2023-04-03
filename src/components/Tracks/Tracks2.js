@@ -4,23 +4,36 @@ import config from "../../config.json";
 import Track from "./Track";
 
 const AudioTracks = (props) => {
-  // This isn't really used right now, but I'm leaving it in in case 
+  // This isn't really used right now, but I'm leaving it in in case
   // I want to add functionality for adding/removing tracks
   const [numTracks, setNumTracks] = useState(config.tracks);
+  const [audio, setAudio] = useState(null);
 
   useEffect(() => {
-    // setNumTracks(config.tracks);
+    // Load the audio files to be passed to children
+    const context = require.context("../../audio/hmm", true, /\.wav$/);
+    setAudio(context.keys().map(context));
   }, []);
 
   const renderTracks = () => {
+    let out = [];
     for (let i = 0; i < numTracks; i++) {
-      return <Track id={i} numTracks={numTracks} started={props.started}/>;
+      out.push(
+        <Track
+          id={i}
+          key={i}
+          numTracks={numTracks}
+          started={props.started}
+          audio={audio}
+        />
+      );
     }
-  }
+    return out;
+  };
 
   return (
     <div className="tracks-container">
-      {renderTracks()}
+      {(!props.started || !audio) ? null : renderTracks()}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 .tracks-container {
   overflow: hidden;
-  height: 100vh;
+  height: fit-content;
   width: 100vw;
 }
 
@@ -8,5 +8,16 @@
   margin: 0.25rem 0;
   width: 100vw;
   max-height: 10vh;
-  min-height: 3vh;
+  min-height: 5vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.element {
+  margin: 0.25vh, 0.125vh;
+  height: 3vh;
+  background-color: black;
 }

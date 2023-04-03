@@ -29,7 +29,6 @@ function App(props) {
   }, []);
 
   const handleClick = async () => {
-    console.log(Tone.Transport.state);
     if (firstClick) {
       await Tone.start();
       await Tone.Transport.start();
@@ -37,6 +36,7 @@ function App(props) {
     }
 
     setStarted(true);
+    console.log(Tone.Transport.state);
 
     // play();
     console.log(score([1,2,4], 16))
