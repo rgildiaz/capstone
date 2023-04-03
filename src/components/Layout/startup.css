@@ -89,18 +89,18 @@ footer a:hover {
   }
   100% {
     opacity: 0;
-    transform: translateX(-100vw);
+    /* transform: translateX(-100vw); */
   }
 }
 
 @keyframes fadeOutAnimation {
   0% {
-    width: 100vw;
+    /* width: 100vw; */
   }
   100% {
-    /* z-index: -10; */
-    width: 0vw;
-    /* opacity: 0;r */
+    z-index: -10;
+    /* width: 0vw; */
+    opacity: 0;
     /* transform: translateX(-100vw); */
   }
 }

@@ -1,4 +1,4 @@
-import { React, useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import * as Tone from "tone";
 
 import Controller from "../Controller";
@@ -14,10 +14,10 @@ function App(props) {
   const [firstClick, setFirstClick] = useState(true);
   const [aboutClass, setAboutClass] = useState("hidden");
 
-  /** A reference to the sound-generating elements that have been setup */
+  /** A reference to the sound-generating elements that have been set up */
   const s = useRef(null);
 
-  /** A reference to the loops that have been setup */
+  /** A reference to the loops that have been set up */
   const l = useRef(null);
 
   useEffect(() => {
@@ -27,12 +27,6 @@ function App(props) {
       console.log("Loaded!");
     });
   }, []);
-
-  // onclick
-  const play = () => {
-    s.current["hmm"].triggerAttack(["C3", "E4"], Tone.now());
-    console.log(s.current["hmm"]);
-  };
 
   const handleClick = async () => {
     console.log(Tone.Transport.state);
@@ -65,7 +59,7 @@ function App(props) {
           <StartupOverlay className="startup" onClick={handleClick} onAboutClick={showAbout}/>
           <AboutOverlay class={"about-overlay " + aboutClass} close={showAbout}/>
           <Controller />
-          <Tracks className="tracks" started={started}/>
+          <Tracks started={started}/>
         </>
       )}
     </div>

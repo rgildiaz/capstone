@@ -1,9 +1,9 @@
 .App {
   text-align: center;
-  display: grid;
-  grid-template-columns: fit-content fit-content;
-  grid-template-rows: 100vh;
-  grid-template-areas: "startup main";
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   background-color: #FAF9F0;
   height: 100vh;
   width: fit-content;

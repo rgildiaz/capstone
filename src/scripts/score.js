@@ -1,19 +1,21 @@
+// I kind of think this is overcomplicating things.
+
 /**
  * Generate a score to play.
- * @param {Array} loopdurs The duration in seconds of each loop for which a track will be generated.
+ * @param {Array} samples An array of the Tone.Player objects that will be used.
  * @param {int} length The total length of the score in seconds
  *
  * @returns a 2D array containing the start times of each instrument.
  */
-function score(loopdurs=[], length=16) {
+function score(samples=[], length=16) {
   /** A 2D array containing a representation of each track */
   let out = [];
 
-  if (loopdurs.length < 1) {
+  if (samples.length < 1) {
     return out;
   }
 
-  loopdurs.forEach((dur) => {
+  samples.forEach((dur) => {
     if (typeof dur !== "number") {
       return;
     }
@@ -28,6 +30,8 @@ function score(loopdurs=[], length=16) {
   });
 
   return out;
-}
+};
+
+// function score_track(sample, )
 
 export { score };
