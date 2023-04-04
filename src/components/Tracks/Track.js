@@ -10,60 +10,91 @@ const Track = (props) => {
   const [player, setPlayer] = useState(null);
   // The position of the sample in this track
   const [position, setPosition] = useState(0);
-  const [started, setStarted] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   // The buffer used by this track's player, convenience
   const [buf, setBuf] = useState(null);
+  // Audio
+  const [audio, setAudio] = useState(props.audio[props.id]);
 
   useEffect(() => {
-    setPlayer(() => {
-      const p = new Tone.Player(
-        props.audio[0],
-        () => {
-          // onload
-          setStarted(props.started);
-          console.log(props.audio[0])
-        }
-        ).toDestination();
-      p.loop = true;
-      return p;
-    });
+    console.log(player, position, loaded, buf, audio);
+
+    // setup
+    async function start() {
+      await checkAudio();
+      const p = await setupPlayer();
+      setBuf(p.buffer);
+      setLoaded(true);
+    }
+    start();
+
+    return () => {
+      if (player) {
+        player.current.stop();
+        setPlayer(null);
+        setAudio(null);
+        setPosition(0);
+        setBuf(null);
+      }
+    };
   }, []);
 
-  // This is broken...
   useEffect(() => {
-    if (started && player) {
-      // player.current.start();
-    } else if (player && player.current.state === "started") {
-      // player.current.stop();
-    }
-  }, [started]);
+    setAudio(props.audio[props.id]);
+  }, [props.audio]);
 
   // Update the buffer when the player updates
   useEffect(() => {
-    if (player) {
-      setBuf(player.buffer);
-    } else {
-      setBuf(null);
+    if (player && player.current) {
+      if (player.current.buffer !== buf) {
+        setBuf(player.current.buffer);
+      }
     }
   }, [player]);
+
+  const checkAudio = () => {
+    return new Promise((resolve, reject) => {
+      if (audio) {
+        resolve(`Track ${props.id} loaded`);
+      } else if (props.audio) {
+        setAudio(props.audio[props.id]);
+        resolve(`Track ${props.id} loaded`);
+      } else {
+        reject("No audio");
+      }
+    });
+  };
+
+  const setupPlayer = () => {
+    return new Promise((resolve, reject) => {
+      if (!player) {
+        const p = new Tone.Player(audio).toDestination();
+        p.loop = true;
+
+        setPlayer(p);
+        resolve(p);
+      }
+    });
+  };
 
   const renderElements = () => {
     let out = [];
     if (buf && buf.duration !== 0) {
-      console.log(buf.duration)
+      console.log(buf.duration); 
       const elementStyle = {
         width: `${(buf.duration / config.track_length) * 100}%`,
-      }
+        left: `${(position / config.track_length) * 100}%`,
+      };
       for (let i = 0; i <= config.track_length; i += buf.duration) {
         out.push(
           <div className={"element"} key={i} style={{ ...elementStyle }}></div>
-        )
+        );
       }
     }
     return out;
   };
 
-  let rgb = config.rgb
+  let rgb = config.rgb;
   // .map((c) => c * ((props.id + 1) / props.numTracks));
   const [r, g, b] = rgb;
 
@@ -72,9 +103,15 @@ const Track = (props) => {
     backgroundColor: `rgba(${r}, ${g}, ${b}, 0.5)`,
   };
 
-  return <div className="track" style={{ ...style }}>
-    {renderElements()}
-  </div>;
+  const handleClick = () => {
+    console.log(player, position, loaded, buf, audio);
+  };
+
+  return (
+    <div className="track" style={{ ...style }} onClick={handleClick}>
+      {!loaded ? null : renderElements()}
+    </div>
+  );
 };
 
 export default Track;

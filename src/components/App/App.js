@@ -21,7 +21,8 @@ function App(props) {
   const l = useRef(null);
 
   useEffect(() => {
-    [s.current, l.current] = setup();
+    // Setup is handled in the Track.js element instead
+    // [s.current, l.current] = setup();
     Tone.loaded().then(() => {
       setLoaded(true);
       console.log("Loaded!");
@@ -31,15 +32,12 @@ function App(props) {
   const handleClick = async () => {
     if (firstClick) {
       await Tone.start();
-      await Tone.Transport.start();
+      Tone.Transport.start();
       setFirstClick(false);
     }
 
     setStarted(true);
     console.log(Tone.Transport.state);
-
-    // play();
-    console.log(score([1,2,4], 16))
   };
 
   const showAbout = () => {

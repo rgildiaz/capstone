@@ -1,51 +1,42 @@
-import { useState, useEffect } from "react";
-
+import React, { useEffect, useState } from "react";
+import "./tracks.css";
+import config from "../../config.json";
 import Track from "./Track";
-import * as scripts from "../../scripts";
-import "./tracks.css"
 
-const Tracks = (props) => {
-  const [isLoaded, setLoaded] = useState(false);
-  const [score, setScore] = useState(null);
+const AudioTracks = (props) => {
+  // This isn't really used right now, but I'm leaving it in in case
+  // I want to add functionality for adding/removing tracks
+  const [numTracks, setNumTracks] = useState(config.tracks);
+  const [audio, setAudio] = useState(null);
 
   useEffect(() => {
-    // console.log(config);
-    const s = scripts.score([1, 2, 4, 8], 16);
-    setScore(s);
+    // Load the audio files to be passed to children
+    const context = require.context("../../audio/hmm", true, /\.wav$/);
+    setAudio(context.keys().map(context));
   }, []);
 
-  useEffect(() => {
-    if (score) {
-      setLoaded(true);
-    }
-  }, [score]);
-
-  /** @todo: this is a placeholder */
   const renderTracks = () => {
-    console.log(score);
-    if (score) {
-      return score.map((track, i) => {
-        return <Track key={i} trackNum={i} track={track} className="track" />;
-      });
+    let out = [];
+    console.log(audio)
+    for (let i = 0; i < numTracks; i++) {
+      out.push(
+        <Track
+          id={i}
+          key={i}
+          numTracks={numTracks}
+          started={props.started}
+          audio={audio}
+        />
+      );
     }
+    return out;
   };
 
   return (
-    <>
-      {!isLoaded ? (
-        <div>Loading...</div>
-      ) : (
-        <>
-          <div
-            className="tracks-container"
-            style={{ minWidth: "100vw", minHeight: "fit-content" }}
-          >
-            {renderTracks()}
-          </div>
-        </>
-      )}
-    </>
+    <div className="tracks-container">
+      {(!props.started || !audio) ? null : renderTracks()}
+    </div>
   );
 };
 
-export default Tracks;
+export default AudioTracks;
