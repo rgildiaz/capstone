@@ -11,31 +11,23 @@ const Track = (props) => {
   // The position of the sample in this track
   const [position, setPosition] = useState(0);
   const [loaded, setLoaded] = useState(false);
-  // The buffer used by this track's player, convenience
-  const [buf, setBuf] = useState(null);
   // Audio
   const [audio, setAudio] = useState(props.audio[props.id]);
 
   useEffect(() => {
-    console.log(player, position, loaded, buf, audio);
-
     // setup
     async function start() {
       await checkAudio();
       const p = await setupPlayer();
-      setBuf(p.buffer);
-      setLoaded(true);
+      setPlayer(p);
+      console.log("lodade?", p.buffer)
     }
     start();
 
     return () => {
-      if (player) {
-        player.current.stop();
-        setPlayer(null);
-        setAudio(null);
-        setPosition(0);
-        setBuf(null);
-      }
+      setPlayer(null);
+      setAudio(null);
+      setPosition(0);
     };
   }, []);
 
@@ -43,12 +35,14 @@ const Track = (props) => {
     setAudio(props.audio[props.id]);
   }, [props.audio]);
 
-  // Update the buffer when the player updates
   useEffect(() => {
-    if (player && player.current) {
-      if (player.current.buffer !== buf) {
-        setBuf(player.current.buffer);
+    if (player !== null) {
+      async function run() {
+        await player.load(audio);
+        console.log("running?/??")
+        setLoaded(true);
       }
+      run();
     }
   }, [player]);
 
@@ -68,10 +62,8 @@ const Track = (props) => {
   const setupPlayer = () => {
     return new Promise((resolve, reject) => {
       if (!player) {
-        const p = new Tone.Player(audio).toDestination();
+        const p = new Tone.Player().toDestination();
         p.loop = true;
-
-        setPlayer(p);
         resolve(p);
       }
     });
@@ -79,11 +71,14 @@ const Track = (props) => {
 
   const renderElements = () => {
     let out = [];
-    if (buf && buf.duration !== 0) {
-      console.log(buf.duration); 
+    const buf = player.buffer;
+    if (buf !== null && buf.duration !== 0) {
+      console.log(buf.duration);
       const elementStyle = {
-        width: `${(buf.duration / config.track_length) * 100}%`,
-        left: `${(position / config.track_length) * 100}%`,
+        // width: `${(buf.duration / config.track_length) * 100}%`,
+        // left: `${(position / config.track_length) * 100}%`,
+        width: "10vw",
+        left: "10vw",
       };
       for (let i = 0; i <= config.track_length; i += buf.duration) {
         out.push(
@@ -95,7 +90,6 @@ const Track = (props) => {
   };
 
   let rgb = config.rgb;
-  // .map((c) => c * ((props.id + 1) / props.numTracks));
   const [r, g, b] = rgb;
 
   // dynamic styles
@@ -104,12 +98,12 @@ const Track = (props) => {
   };
 
   const handleClick = () => {
-    console.log(player, position, loaded, buf, audio);
+    console.log(player, position, loaded, audio);
   };
 
   return (
     <div className="track" style={{ ...style }} onClick={handleClick}>
-      {!loaded ? null : renderElements()}
+      {!loaded ? "..." : renderElements()}
     </div>
   );
 };

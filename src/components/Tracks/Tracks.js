@@ -6,6 +6,7 @@ import Track from "./Track";
 const AudioTracks = (props) => {
   // This isn't really used right now, but I'm leaving it in in case
   // I want to add functionality for adding/removing tracks
+  // TODO calculate track height based on num tracks
   const [numTracks, setNumTracks] = useState(config.tracks);
   const [audio, setAudio] = useState(null);
 
@@ -17,7 +18,6 @@ const AudioTracks = (props) => {
 
   const renderTracks = () => {
     let out = [];
-    console.log(audio)
     for (let i = 0; i < numTracks; i++) {
       out.push(
         <Track

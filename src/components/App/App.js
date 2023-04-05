@@ -1,35 +1,38 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import * as Tone from "tone";
 
 import Controller from "../Controller";
-import { StartupOverlay, AboutOverlay } from "../Layout";
+import { AboutOverlay, StartupOverlay } from "../Layout";
 
-import "./App.css";
-import { setup, score } from "../../scripts";
+import { setup } from "../../scripts";
 import Tracks from "../Tracks";
+import "./App.css";
 
+/**
+ * Make ambient music in your web browser!
+ */
 function App(props) {
   const [isLoaded, setLoaded] = useState(false);
   const [started, setStarted] = useState(false);
   const [firstClick, setFirstClick] = useState(true);
   const [aboutClass, setAboutClass] = useState("hidden");
-
-  /** A reference to the sound-generating elements that have been set up */
-  const s = useRef(null);
-
-  /** A reference to the loops that have been set up */
-  const l = useRef(null);
+  const [fx, setFx] = useState(null);
 
   useEffect(() => {
-    // Setup is handled in the Track.js element instead
-    // [s.current, l.current] = setup();
-    Tone.loaded().then(() => {
+    async function run() {
+      // setup returns the effects on the destination node
+      const s = await setup();
+      setFx(s);
+
+      await Tone.loaded();
       setLoaded(true);
       console.log("Loaded!");
-    });
+    }
+    run();
   }, []);
 
   const handleClick = async () => {
+    // firstClick prevents spam clicking
     if (firstClick) {
       await Tone.start();
       Tone.Transport.start();
@@ -54,10 +57,17 @@ function App(props) {
         <div className="loading">Loading...</div>
       ) : (
         <>
-          <StartupOverlay className="startup" onClick={handleClick} onAboutClick={showAbout}/>
-          <AboutOverlay class={"about-overlay " + aboutClass} close={showAbout}/>
-          <Controller />
-          <Tracks started={started}/>
+          <StartupOverlay
+            className="startup"
+            onClick={handleClick}
+            onAboutClick={showAbout}
+          />
+          <AboutOverlay
+            class={"about-overlay " + aboutClass}
+            close={showAbout}
+          />
+          <Controller fx={fx} />
+          <Tracks started={started} />
         </>
       )}
     </div>
