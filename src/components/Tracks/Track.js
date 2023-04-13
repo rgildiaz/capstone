@@ -4,25 +4,29 @@ import config from "../../config.json";
 
 /**
  * An audio track responsible for rendering and playing one sample.
+ * Generates a number of element nodes to fill the track, based on the length of the associated sample.
+ * @todo Fix scrolling animation
+ * @todo Fix audio playback
  */
 const Track = (props) => {
-  // The Tone.Player object for this track
-  const [player, setPlayer] = useState(null);
-  // The position of the sample in this track
-  const [position, setPosition] = useState(100);
-  const [loaded, setLoaded] = useState(false);
   // Audio
   const [audio, setAudio] = useState(props.audio[props.id]);
+  const [player, setPlayer] = useState(null);
+  const [loaded, setLoaded] = useState(false);
+
+  // Animation
   const [speed, setSpeed] = useState(0.1);
+  /** How far the sample has been played, in % */
+  const [position, setPosition] = useState(100);
   const requestRef = useRef();
 
   useEffect(() => {
-    // setup
+    // checkAudio and setupPlayer are async to allow for the audio to load
     async function start() {
       await checkAudio();
       const p = await setupPlayer();
       setPlayer(p);
-      console.log(p.buffer)
+      console.log(p.buffer);
     }
     start();
 
@@ -34,10 +38,6 @@ const Track = (props) => {
       cancelAnimationFrame(requestRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    setAudio(props.audio[props.id]);
-  }, [props.audio]);
 
   useEffect(() => {
     if (player !== null) {
@@ -61,7 +61,7 @@ const Track = (props) => {
   }, [animate]);
 
   /**
-   * Check that the audio file has been loaded. 
+   * Check that the audio file has been loaded.
    * @returns {Promise} Resolves if audio is loaded, rejects if not
    */
   const checkAudio = () => {
@@ -91,12 +91,15 @@ const Track = (props) => {
     });
   };
 
+  /**
+   * Render the elements that fill the track.
+   */
   const renderElements = () => {
     let out = [];
     const buf = player.buffer;
     if (buf !== null && buf.duration !== 0) {
       // console.log(buf.duration, config.track_length);
-      
+
       for (let i = 0; i <= config.track_length; i += buf.duration) {
         const elementStyle = {
           // width: `${(buf.duration / config.track_length) * 100}%`,
@@ -126,6 +129,7 @@ const Track = (props) => {
 
   return (
     <div className="track" style={{ ...style }} onClick={handleClick}>
+      {/* Wait to render until audio is loaded */}
       {!loaded ? "..." : renderElements()}
     </div>
   );

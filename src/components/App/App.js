@@ -5,6 +5,7 @@ import Controller from "../Controller";
 import { AboutOverlay, StartupOverlay } from "../Layout";
 
 import { setup } from "../../scripts";
+import config from "../../config.json";
 import Tracks from "../Tracks";
 import "./App.css";
 
@@ -15,6 +16,8 @@ function App(props) {
   const [isLoaded, setLoaded] = useState(false);
   const [started, setStarted] = useState(false);
   const [firstClick, setFirstClick] = useState(true);
+  // numTracks isn't used right now.
+  const [numTracks, setNumTracks] = useState(config.tracks);
   const [aboutClass, setAboutClass] = useState("hidden");
   const [fx, setFx] = useState(null);
 
@@ -40,7 +43,7 @@ function App(props) {
     }
 
     setStarted(true);
-    console.log(Tone.Transport.state);
+    console.log("Tone.Transport:", Tone.Transport.state);
   };
 
   const showAbout = () => {
@@ -67,7 +70,7 @@ function App(props) {
             close={showAbout}
           />
           <Controller fx={fx} />
-          <Tracks started={started} />
+          <Tracks started={started} numTracks={numTracks}/>
         </>
       )}
     </div>

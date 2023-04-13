@@ -18,11 +18,18 @@ const setup = async () => {
 
     let fx = {};
 
-    const verb = new Tone.Reverb().toDestination();
-
-    fx["reverb"] = verb;
-    
-    resolve(fx);
+    try {
+      const verb = new Tone.Reverb().toDestination();
+      const dist = new Tone.Distortion().toDestination();
+  
+      fx["reverb"] = verb;
+      fx["distortion"] = dist;
+      
+      resolve(fx);
+    } catch (err) {
+      console.log("Tone.js effects could not be set up");
+      reject("Tone.js effects could not be set up");
+    }
   });
 };
 
