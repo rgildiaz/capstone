@@ -54,6 +54,10 @@ function App(props) {
     }
   };
 
+  const closeAbout = () => {
+    setAboutClass("hidden");
+  };
+
   return (
     <div className="App">
       {!isLoaded ? (
@@ -67,7 +71,7 @@ function App(props) {
           />
           <AboutOverlay
             class={"about-overlay " + aboutClass}
-            close={showAbout}
+            close={closeAbout}
           />
           <Controller fx={fx} />
           <Tracks started={started} numTracks={numTracks}/>

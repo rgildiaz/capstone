@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import * as Tone from "tone";
 import config from "../../config.json";
 
+import TrackElement from "./TrackElement";
+
 /**
  * An audio track responsible for rendering and playing one sample.
  * Generates a number of element nodes to fill the track, based on the length of the associated sample.
@@ -17,11 +19,12 @@ const Track = (props) => {
   // Animation
   const [speed, setSpeed] = useState(0.1);
   /** How far the sample has been played, in % */
-  const [position, setPosition] = useState(100);
+  const [position, setPosition] = useState(-50);
   const requestRef = useRef();
+  const animationTimeout = useRef(200);
 
   useEffect(() => {
-    // checkAudio and setupPlayer are async to allow for the audio to load
+    // checkAudio and setupPlayer are awaited to let the audio load
     async function start() {
       await checkAudio();
       const p = await setupPlayer();
@@ -33,8 +36,8 @@ const Track = (props) => {
     return () => {
       // cleanup
       setPlayer(null);
-      setAudio(null);
-      setPosition(100);
+      setAudio(props.audio[props.id]);
+      setPosition(-50);
       cancelAnimationFrame(requestRef.current);
     };
   }, []);
@@ -42,6 +45,7 @@ const Track = (props) => {
   useEffect(() => {
     if (player !== null) {
       async function run() {
+        console.log(audio);
         await player.load(audio);
         setLoaded(true);
       }
@@ -49,9 +53,13 @@ const Track = (props) => {
     }
   }, [player]);
 
+  /** Set a timeout */
+  const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
   // Animation frames
+  // Position should not be updated this way
   const animate = (timestamp) => {
-    setPosition((prevPosition) => (prevPosition - speed) % 100);
+    setPosition((prevPosition) => (prevPosition + speed) % 100);
     requestRef.current = requestAnimationFrame(animate);
   };
 
@@ -97,22 +105,27 @@ const Track = (props) => {
   const renderElements = () => {
     let out = [];
     const buf = player.buffer;
-    if (buf !== null && buf.duration !== 0) {
-      // console.log(buf.duration, config.track_length);
 
-      for (let i = 0; i <= config.track_length; i += buf.duration) {
+    if (buf !== null && buf.duration !== 0) {
+      // Render enough elements to always fill the screen
+      for (let i = 0; i <= config.track_length + buf.duration; i += buf.duration) {
         const elementStyle = {
-          // width: `${(buf.duration / config.track_length) * 100}%`,
-          // left: `${(position / config.track_length) * 100}%`,
-          width: `${(buf.duration / config.track_length) * 100}%`,
-          left: `${position}%`,
+          width: `${(buf.duration / config.track_length) * 100}vw`,
         };
         out.push(
           <div className={"element"} key={i} style={{ ...elementStyle }}></div>
+          // <TrackElement key={i} calcStyle={elementStyle} mounted={true}/>
         );
       }
+    } else {
+      console.log("Buffer not loaded: ", player.buf);
     }
-    return out;
+
+    return (
+      <div className="element-wrapper" style={{ left: `${-position}%` }}>
+        {out}
+      </div>
+    );
   };
 
   let rgb = config.rgb;
