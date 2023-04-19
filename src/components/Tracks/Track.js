@@ -20,10 +20,12 @@ const Track = (props) => {
 
   // Animation
   const [speed, setSpeed] = useState(0.1);
-  /** How far the sample has been played, in % */
+  /** How far the sample has been played, in 1/10 s */
   const [position, setPosition] = useState(-50);
+  const [maxPosition, setMaxPosition] = useState(100);
   const requestRef = useRef();
-  const animationTimeout = useRef(200);
+  const lastFrameTimeRef = useRef(0);
+  const animationTimeout = useRef(5000);
 
   useEffect(() => {
     // checkAudio and setupPlayer are awaited to let the audio load
@@ -31,12 +33,15 @@ const Track = (props) => {
       await checkAudio();
       const p = await setupPlayer();
       setPlayer(p);
-      console.log(p.buffer);
+      setMaxPosition(p.buffer.duration * 1000);
     }
     start();
 
     return () => {
       // cleanup
+      if (player && player.state === "started") {
+        player.stop();
+      }
       setPlayer(null);
       setAudio(props.audio[props.id]);
       setPosition(-50);
@@ -59,9 +64,22 @@ const Track = (props) => {
   const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
   // Animation frames
-  // Position should not be updated this way
   const animate = (timestamp) => {
-    setPosition((prevPosition) => (prevPosition + speed) % 100);
+    // Calculate the time since the last frame
+    const currentTime = timestamp;
+    const deltaTime = currentTime - lastFrameTimeRef.current;
+    lastFrameTimeRef.current = currentTime;
+
+    if (animationTimeout.current > 0) {
+      console.log(animationTimeout.current);
+      animationTimeout.current -= deltaTime;
+    } else {
+      setPosition((prevPosition) => {
+        console.log(prevPosition, deltaTime, speed, maxPosition);
+        return (prevPosition + (deltaTime / 1000) * speed) % maxPosition;
+      });
+    }
+  
     requestRef.current = requestAnimationFrame(animate);
   };
 
@@ -70,13 +88,19 @@ const Track = (props) => {
     return () => cancelAnimationFrame(requestRef.current);
   }, [animate]);
 
-  // Play the sample when position reaches 0 (or at least close to it)
+  // Play the sample when position reaches 0
+  const lastPlayedRef = useRef(0);
   useEffect(() => {
-    if (position <= 1 && loaded) {
-      player.restart(Tone.now());
+    if (Math.round(position) === 0 && loaded) {
+      const currentTime = Date.now();
+      // use the lastPlayedRef to prevent the sample from playing too often
+      if (currentTime - lastPlayedRef.current > 150) {
+        console.log(position);
+        player.start();
+        lastPlayedRef.current = currentTime;
+      }
     }
-  }, [position]);
-
+  }, [position, loaded]);
 
   /**
    * Check that the audio file has been loaded.
@@ -102,8 +126,12 @@ const Track = (props) => {
   const setupPlayer = () => {
     return new Promise((resolve, reject) => {
       if (!player) {
-        const p = new Tone.Player().toDestination();
-        p.loop = true;
+        // FAKE PANNING
+        const panner = new Tone.Panner(1).toDestination();
+        panner.pan.value = Math.random() - 0.5;
+        const p = new Tone.Player().connect(panner);
+        p.fadeIn = 0.1;
+        p.fadeOut = 0.1;
         resolve(p);
       }
     });
@@ -118,7 +146,11 @@ const Track = (props) => {
 
     if (buf !== null && buf.duration !== 0) {
       // Render enough elements to always fill the screen
-      for (let i = 0; i <= config.track_length + buf.duration; i += buf.duration) {
+      for (
+        let i = 0;
+        i <= config.track_length + buf.duration;
+        i += buf.duration
+      ) {
         const elementStyle = {
           width: `${(buf.duration / config.track_length) * 100}vw`,
         };
