@@ -8,6 +8,8 @@ import TrackElement from "./TrackElement";
  * An audio track responsible for rendering and playing one sample.
  * Generates a number of element nodes to fill the track, based on the length of the associated sample.
  * @todo Fix scrolling animation
+ *  @todo speed
+ *  @todo fix position reset
  * @todo Fix audio playback
  */
 const Track = (props) => {
@@ -68,6 +70,14 @@ const Track = (props) => {
     return () => cancelAnimationFrame(requestRef.current);
   }, [animate]);
 
+  // Play the sample when position reaches 0 (or at least close to it)
+  useEffect(() => {
+    if (position <= 1 && loaded) {
+      player.restart(Tone.now());
+    }
+  }, [position]);
+
+
   /**
    * Check that the audio file has been loaded.
    * @returns {Promise} Resolves if audio is loaded, rejects if not
@@ -114,6 +124,7 @@ const Track = (props) => {
         };
         out.push(
           <div className={"element"} key={i} style={{ ...elementStyle }}></div>
+          // // Use the custom TrackElement component
           // <TrackElement key={i} calcStyle={elementStyle} mounted={true}/>
         );
       }
@@ -122,20 +133,23 @@ const Track = (props) => {
     }
 
     return (
+      // Using position on the element-wrapper instead of the element makes animation easier.
+      // Only need to load one screen-ful of elements, then can snap the position back to start
+      // when the animation reaches the end.
       <div className="element-wrapper" style={{ left: `${-position}%` }}>
         {out}
       </div>
     );
   };
 
-  let rgb = config.rgb;
-  const [r, g, b] = rgb;
+  const [r, g, b] = config.rgb;
 
   // dynamic styles
   const style = {
     backgroundColor: `rgba(${r}, ${g}, ${b}, 0.5)`,
   };
 
+  // Change sample bank on click
   const handleClick = () => {
     console.log(player, position, loaded, audio);
   };

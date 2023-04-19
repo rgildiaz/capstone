@@ -15,6 +15,16 @@
   min-height: 5vh;
   overflow: hidden;
   position: relative;
+  overflow: visible;
+}
+
+.track > * {
+  transition: transform 0.03s ease-in-out;
+}
+
+.track:hover > *{
+  transform: translateY(-0.25rem);
+  cursor: pointer;
 }
 
 .element-wrapper {
@@ -29,7 +39,7 @@
 .element {
   height: 100%;
   margin: 0.25vh, 0;
-  background-color: rgba(111, 111, 111, 0.266);
+  background-color: rgba(46, 94, 191, 0.266);
   border-radius: 4px;
   border: 2px solid rgb(75, 75, 75);
 }
