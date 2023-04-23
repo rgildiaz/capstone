@@ -19,13 +19,15 @@ const Track = (props) => {
   const [loaded, setLoaded] = useState(false);
 
   // Animation
-  const [speed, setSpeed] = useState(0.1);
+  const [speed, setSpeed] = useState(0.01);
   /** How far the sample has been played, in 1/10 s */
   const [position, setPosition] = useState(-50);
   const [maxPosition, setMaxPosition] = useState(100);
+  // Sort of working?????
+  const [startOffset, setStartOffset] = useState(0);
   const requestRef = useRef();
   const lastFrameTimeRef = useRef(0);
-  const animationTimeout = useRef(5000);
+  const animationTimeout = useRef(1000);
 
   useEffect(() => {
     // checkAudio and setupPlayer are awaited to let the audio load
@@ -33,7 +35,6 @@ const Track = (props) => {
       await checkAudio();
       const p = await setupPlayer();
       setPlayer(p);
-      setMaxPosition(p.buffer.duration * 1000);
     }
     start();
 
@@ -45,23 +46,21 @@ const Track = (props) => {
       setPlayer(null);
       setAudio(props.audio[props.id]);
       setPosition(-50);
+      setMaxPosition(100);
       cancelAnimationFrame(requestRef.current);
     };
   }, []);
 
-  useEffect(() => {
-    if (player !== null) {
-      async function run() {
-        console.log(audio);
-        await player.load(audio);
-        setLoaded(true);
-      }
-      run();
-    }
-  }, [player]);
-
-  /** Set a timeout */
-  const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+  // useEffect(() => {
+  //   if (player !== null) {
+  //     async function run() {
+  //       console.log(audio);
+  //       await player.load(audio);
+  //       setLoaded(true);
+  //     }
+  //     run();
+  //   }
+  // }, [player]);
 
   // Animation frames
   const animate = (timestamp) => {
@@ -71,12 +70,14 @@ const Track = (props) => {
     lastFrameTimeRef.current = currentTime;
 
     if (animationTimeout.current > 0) {
-      console.log(animationTimeout.current);
-      animationTimeout.current -= deltaTime;
+      // Wait for the sample to load before starting the animation countdown
+      if (loaded) {
+        console.log(animationTimeout.current);
+        animationTimeout.current -= deltaTime;
+      }
     } else {
       setPosition((prevPosition) => {
-        console.log(prevPosition, deltaTime, speed, maxPosition);
-        return (prevPosition + (deltaTime / 1000) * speed) % maxPosition;
+        return (prevPosition + (deltaTime * speed)) % maxPosition;
       });
     }
   
@@ -95,7 +96,7 @@ const Track = (props) => {
       const currentTime = Date.now();
       // use the lastPlayedRef to prevent the sample from playing too often
       if (currentTime - lastPlayedRef.current > 150) {
-        console.log(position);
+        console.log(props.id, position);
         player.start();
         lastPlayedRef.current = currentTime;
       }
@@ -129,10 +130,22 @@ const Track = (props) => {
         // FAKE PANNING
         const panner = new Tone.Panner(1).toDestination();
         panner.pan.value = Math.random() - 0.5;
-        const p = new Tone.Player().connect(panner);
+        const p = new Tone.Player(
+          audio,
+          () => {
+            console.log("loaded");
+            console.log("buf duration: ", p.buffer.duration * 1000);
+            setPosition((prevPosition) => 
+              (prevPosition - startOffset)
+            )
+            setMaxPosition(p.buffer.duration*10);
+            setLoaded(true);
+            resolve(p);
+          }
+        )
+        p.connect(panner);
         p.fadeIn = 0.1;
         p.fadeOut = 0.1;
-        resolve(p);
       }
     });
   };
