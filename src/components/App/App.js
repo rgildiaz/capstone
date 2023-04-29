@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as Tone from "tone";
 
-import Controller from "../Controller";
+// import Controller from "../Controller";
 import { AboutOverlay, StartupOverlay } from "../Layout";
 
 import { setup } from "../../scripts";
@@ -24,8 +24,8 @@ function App(props) {
   useEffect(() => {
     async function run() {
       // setup returns the effects on the destination node
-      const s = await setup();
-      setFx(s);
+      // const s = await setup();
+      // setFx(s);
 
       await Tone.loaded();
       setLoaded(true);
@@ -73,7 +73,7 @@ function App(props) {
             class={"about-overlay " + aboutClass}
             close={closeAbout}
           />
-          <Controller fx={fx} />
+          {/* <Controller fx={fx} /> */}
           <Tracks started={started} numTracks={numTracks}/>
         </>
       )}

@@ -9,12 +9,32 @@ const AudioTracks = (props) => {
   // This isn't really used right now, but I'm leaving it in in case
   // I want to add functionality for adding/removing tracks
   const [numTracks, setNumTracks] = useState(props.numTracks);
-  const [audio, setAudio] = useState(null);
+
+  // Keep track of the audio files for each child
+  const [children, setChildren] = useState(Array(props.numTracks).fill(null));
+
+  const audioDir = "../../audio/";
+  // This has to be done manually (I think?) since React doesn't have access to file structure
+  const audioCategories = [
+    "hmm",
+    "mel",
+    "music_box",
+    "noise",
+    "perc",
+    "vox"
+  ]
 
   useEffect(() => {
-    // Load the audio files to be passed to children
-    const context = require.context("../../audio/hmm", true, /\.wav$/);
-    setAudio(context.keys().map(context));
+    // Create the URLS for audio files to be passed to children
+    const files = audioDir.concat(audioCategories[0])
+    console.log(files);
+    setChildren(files);
+
+    return () => {
+      // cleanup
+      setChildren(Array(props.numTracks).fill(null));
+      setNumTracks(props.numTracks);
+    }
   }, []);
 
   const renderTracks = () => {
@@ -26,7 +46,7 @@ const AudioTracks = (props) => {
           key={i}
           numTracks={numTracks}
           started={props.started}
-          audio={audio}
+          audio={children[i]}
         />
       );
     }
@@ -36,7 +56,7 @@ const AudioTracks = (props) => {
   return (
     <div className="tracks-container">
       {/* Wait for the app to start and for audio to load before rendering */}
-      {(!props.started || !audio) ? null : renderTracks()}
+      {(!props.started || !children) ? null : renderTracks()}
     </div>
   );
 };

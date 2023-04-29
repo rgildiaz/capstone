@@ -14,7 +14,9 @@ import TrackElement from "./TrackElement";
  */
 const Track = (props) => {
   // Audio
-  const [audio, setAudio] = useState(props.audio[props.id]);
+  /** The audio file to use for the player */
+  const [audio, setAudio] = useState(null);
+  /** The Tone.Player object */
   const [player, setPlayer] = useState(null);
   const [loaded, setLoaded] = useState(false);
 
@@ -23,17 +25,17 @@ const Track = (props) => {
   /** How far the sample has been played, in 1/10 s */
   const [position, setPosition] = useState(-50);
   const [maxPosition, setMaxPosition] = useState(100);
-  // Sort of working?????
-  const [startOffset, setStartOffset] = useState(0);
+  /** The requestAnimationFrame ID */
   const requestRef = useRef();
   const lastFrameTimeRef = useRef(0);
+  /** Startup animation timeout */
   const animationTimeout = useRef(1000);
 
   useEffect(() => {
     // checkAudio and setupPlayer are awaited to let the audio load
     async function start() {
-      await checkAudio();
-      const p = await setupPlayer();
+      const a = await checkAudio();
+      const p = await setupPlayer(a);
       setPlayer(p);
     }
     start();
@@ -44,23 +46,12 @@ const Track = (props) => {
         player.stop();
       }
       setPlayer(null);
-      setAudio(props.audio[props.id]);
+      setAudio(null);
       setPosition(-50);
       setMaxPosition(100);
       cancelAnimationFrame(requestRef.current);
     };
   }, []);
-
-  // useEffect(() => {
-  //   if (player !== null) {
-  //     async function run() {
-  //       console.log(audio);
-  //       await player.load(audio);
-  //       setLoaded(true);
-  //     }
-  //     run();
-  //   }
-  // }, [player]);
 
   // Animation frames
   const animate = (timestamp) => {
@@ -77,10 +68,10 @@ const Track = (props) => {
       }
     } else {
       setPosition((prevPosition) => {
-        return (prevPosition + (deltaTime * speed)) % maxPosition;
+        return (prevPosition + deltaTime * speed) % maxPosition;
       });
     }
-  
+
     requestRef.current = requestAnimationFrame(animate);
   };
 
@@ -104,50 +95,39 @@ const Track = (props) => {
   }, [position, loaded]);
 
   /**
-   * Check that the audio file has been loaded.
-   * @returns {Promise} Resolves if audio is loaded, rejects if not
+   * Load the audio file and return it
    */
-  const checkAudio = () => {
-    return new Promise((resolve, reject) => {
-      if (audio) {
-        resolve(`Track ${props.id} loaded`);
-      } else if (props.audio) {
-        setAudio(props.audio[props.id]);
-        resolve(`Track ${props.id} loaded`);
-      } else {
-        reject("No audio");
-      }
-    });
+  const checkAudio = async () => {
+    // require() actually loads the audio file
+    const file = await require(props.audio);
+    setAudio(file);
+
+    return file;
   };
 
   /**
    * Setup the Tone.Player object for this track.
    * @returns {Promise} Resolves with a Tone.Player object
    */
-  const setupPlayer = () => {
-    return new Promise((resolve, reject) => {
-      if (!player) {
-        // FAKE PANNING
-        const panner = new Tone.Panner(1).toDestination();
-        panner.pan.value = Math.random() - 0.5;
-        const p = new Tone.Player(
-          audio,
-          () => {
-            console.log("loaded");
-            console.log("buf duration: ", p.buffer.duration * 1000);
-            setPosition((prevPosition) => 
-              (prevPosition - startOffset)
-            )
-            setMaxPosition(p.buffer.duration*10);
-            setLoaded(true);
-            resolve(p);
-          }
-        )
-        p.connect(panner);
-        p.fadeIn = 0.1;
-        p.fadeOut = 0.1;
-      }
-    });
+  const setupPlayer = async (audioFile) => {
+    if (!player) {
+      // FAKE PANNING
+      const panner = new Tone.Panner(1).toDestination();
+      panner.pan.value = Math.random() - 0.5;
+
+      const startOffset = 0;
+      console.log("startOffset: ", startOffset)
+
+      const p = new Tone.Player(audioFile, () => {
+        console.log("buf duration: ", p.buffer.duration * 1000);
+        setPosition((prevPosition) => prevPosition - startOffset);
+        setMaxPosition(p.buffer.duration * 10);
+        setLoaded(true);
+      });
+      p.connect(panner);
+      p.fadeIn = 0.1;
+      p.fadeOut = 0.1;
+    }
   };
 
   /**
