@@ -29,7 +29,12 @@ function App(props) {
 
       await Tone.loaded();
       setLoaded(true);
-      console.log("Loaded!");
+      console.log(`
+----------------------------------------
+         Music for Web Browsers
+----------------------------------------
+  https://github.com/rgildiaz/capstone
+      `);
     }
     run();
   }, []);
@@ -43,7 +48,6 @@ function App(props) {
     }
 
     setStarted(true);
-    console.log("Tone.Transport:", Tone.Transport.state);
   };
 
   const showAbout = () => {

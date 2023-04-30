@@ -20,11 +20,13 @@ const Track = (props) => {
   const [player, setPlayer] = useState(null);
   const [loaded, setLoaded] = useState(false);
 
-  // Animation
-  const [speed, setSpeed] = useState(0.01);
+  // Position
   /** How far the sample has been played, in 1/10 s */
-  const [position, setPosition] = useState(-50);
+  const [position, setPosition] = useState(0);
   const [maxPosition, setMaxPosition] = useState(100);
+  const speed = 0.01;
+
+  // Animation
   /** The requestAnimationFrame ID */
   const requestRef = useRef();
   const lastFrameTimeRef = useRef(0);
@@ -32,10 +34,18 @@ const Track = (props) => {
   const animationTimeout = useRef(1000);
 
   useEffect(() => {
-    // checkAudio and setupPlayer are awaited to let the audio load
     async function start() {
       const a = await checkAudio();
       const p = await setupPlayer(a);
+
+      // Set the startup wait
+      const startOffset = Math.random() * p.buffer.duration;
+      console.log(p.buffer, startOffset);
+      // Broken right now
+      setPosition((prev) => {
+        return prev + startOffset * -1;
+      });
+
       setPlayer(p);
     }
     start();
@@ -47,7 +57,7 @@ const Track = (props) => {
       }
       setPlayer(null);
       setAudio(null);
-      setPosition(-50);
+      setPosition(0);
       setMaxPosition(100);
       cancelAnimationFrame(requestRef.current);
     };
@@ -87,7 +97,6 @@ const Track = (props) => {
       const currentTime = Date.now();
       // use the lastPlayedRef to prevent the sample from playing too often
       if (currentTime - lastPlayedRef.current > 150) {
-        console.log(props.id, position);
         player.start();
         lastPlayedRef.current = currentTime;
       }
@@ -99,7 +108,8 @@ const Track = (props) => {
    */
   const checkAudio = async () => {
     // require() actually loads the audio file
-    const file = await require(props.audio);
+    // const file = await require(props.audio[0]);
+    const file = props.audio[props.id];
     setAudio(file);
 
     return file;
@@ -116,17 +126,22 @@ const Track = (props) => {
       panner.pan.value = Math.random() - 0.5;
 
       const startOffset = 0;
-      console.log("startOffset: ", startOffset)
+      console.log("startOffset: ", startOffset);
 
       const p = new Tone.Player(audioFile, () => {
         console.log("buf duration: ", p.buffer.duration * 1000);
         setPosition((prevPosition) => prevPosition - startOffset);
         setMaxPosition(p.buffer.duration * 10);
+        setPlayer(p);
         setLoaded(true);
       });
       p.connect(panner);
       p.fadeIn = 0.1;
       p.fadeOut = 0.1;
+
+      return p;
+    } else {
+      console.log("Player already exists");
     }
   };
 
@@ -136,7 +151,6 @@ const Track = (props) => {
   const renderElements = () => {
     let out = [];
     const buf = player.buffer;
-
     if (buf !== null && buf.duration !== 0) {
       // Render enough elements to always fill the screen
       for (

@@ -13,8 +13,8 @@ const AudioTracks = (props) => {
   // Keep track of the audio files for each child
   const [children, setChildren] = useState(Array(props.numTracks).fill(null));
 
-  const audioDir = "../../audio/";
   // This has to be done manually (I think?) since React doesn't have access to file structure
+  const audioDir = "../../audio/";
   const audioCategories = [
     "hmm",
     "mel",
@@ -26,9 +26,11 @@ const AudioTracks = (props) => {
 
   useEffect(() => {
     // Create the URLS for audio files to be passed to children
-    const files = audioDir.concat(audioCategories[0])
-    console.log(files);
-    setChildren(files);
+    const files = audioDir.concat(audioCategories[2]);
+    const x = require.context("../../audio/music_box/", false, /\.wav$/)
+    const y = x.keys().map(x);
+    setChildren(y);
+    // console.log(y);
 
     return () => {
       // cleanup
@@ -37,6 +39,10 @@ const AudioTracks = (props) => {
     }
   }, []);
 
+  /**
+   * Render the Track components.
+   * @returns an array of Track components to render
+   */
   const renderTracks = () => {
     let out = [];
     for (let i = 0; i < numTracks; i++) {
@@ -46,7 +52,7 @@ const AudioTracks = (props) => {
           key={i}
           numTracks={numTracks}
           started={props.started}
-          audio={children[i]}
+          audio={children}
         />
       );
     }
