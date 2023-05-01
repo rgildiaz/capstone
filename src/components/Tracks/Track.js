@@ -7,10 +7,6 @@ import TrackElement from "./TrackElement";
 /**
  * An audio track responsible for rendering and playing one sample.
  * Generates a number of element nodes to fill the track, based on the length of the associated sample.
- * @todo Fix scrolling animation
- *  @todo speed
- *  @todo fix position reset
- * @todo Fix audio playback
  */
 const Track = (props) => {
   // Audio
@@ -129,8 +125,7 @@ const Track = (props) => {
       console.log("startOffset: ", startOffset);
 
       const p = new Tone.Player(audioFile, () => {
-        console.log("buf duration: ", p.buffer.duration * 1000);
-        setPosition((prevPosition) => prevPosition - startOffset);
+        setPosition((prevPosition) => prevPosition - (p.buffer.duration * Math.random()));
         setMaxPosition(p.buffer.duration * 10);
         setPlayer(p);
         setLoaded(true);

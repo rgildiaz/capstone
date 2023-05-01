@@ -13,24 +13,29 @@ const AudioTracks = (props) => {
   // Keep track of the audio files for each child
   const [children, setChildren] = useState(Array(props.numTracks).fill(null));
 
-  // This has to be done manually (I think?) since React doesn't have access to file structure
-  const audioDir = "../../audio/";
-  const audioCategories = [
-    "hmm",
-    "mel",
-    "music_box",
-    "noise",
-    "perc",
-    "vox"
-  ]
 
   useEffect(() => {
-    // Create the URLS for audio files to be passed to children
-    const files = audioDir.concat(audioCategories[2]);
-    const x = require.context("../../audio/music_box/", false, /\.wav$/)
-    const y = x.keys().map(x);
-    setChildren(y);
-    // console.log(y);
+    // This has to be done manually with string literals since require.context happens at compile time
+    // pain
+    // surely there's a better way to do this?????
+    let music_box = require.context("../../audio/music_box/", false, /\.wav$/);
+    music_box = music_box.keys().map(music_box);
+
+    let mel = require.context("../../audio/mel/", false, /\.wav$/);
+    mel = mel.keys().map(mel);
+
+    let perc = require.context("../../audio/perc/", false, /\.wav$/);
+    perc = perc.keys().map(perc);
+
+    let noise = require.context("../../audio/noise/", false, /\.wav$/);
+    noise = noise.keys().map(noise);
+
+    let vox = require.context("../../audio/vox/", false, /\.wav$/);
+    vox = vox.keys().map(vox);
+
+    console.log(music_box, mel, perc, noise, vox);
+
+    setChildren(music_box);
 
     return () => {
       // cleanup
