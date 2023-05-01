@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import * as Tone from "tone";
 
 // import Controller from "../Controller";
-import { AboutOverlay, StartupOverlay } from "../Layout";
+import { AboutOverlay, MenuBar, StartupOverlay } from "../Layout";
 
 import { setup } from "../../scripts";
 import config from "../../config.json";
@@ -32,8 +32,9 @@ function App(props) {
       console.log(`
 ----------------------------------------
          Music for Web Browsers
-----------------------------------------
+                  ***
   https://github.com/rgildiaz/capstone
+----------------------------------------
       `);
     }
     run();
@@ -78,7 +79,10 @@ function App(props) {
             close={closeAbout}
           />
           {/* <Controller fx={fx} /> */}
-          <Tracks started={started} numTracks={numTracks}/>
+          <>
+            <MenuBar started={started} />
+            <Tracks started={started} numTracks={numTracks}/>
+          </>
         </>
       )}
     </div>

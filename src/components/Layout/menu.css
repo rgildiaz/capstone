@@ -1,0 +1,29 @@
+.menu-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: fit-content;
+}
+
+.menu-bar-item {
+  background-color: rgba(105, 105, 105, 0.188);
+  border-radius: 5px;
+  padding: 5px;
+  margin: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.menu-bar-item:hover {
+  background-color: rgba(136, 136, 136, 0.385);
+  box-shadow: 3px 3px 0 rgba(74, 74, 74, 0.5);
+}
+
+.enabled {
+  background-color: rgba(89, 134, 225, 0.385);
+}
+
+.enabled:hover {
+  background-color: rgba(59, 93, 159, 0.385);
+}
