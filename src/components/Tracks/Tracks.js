@@ -32,10 +32,12 @@ const AudioTracks = (props) => {
 
     let vox = require.context("../../audio/vox/", false, /\.wav$/);
     vox = vox.keys().map(vox);
+    
+    const all = music_box.concat(perc);
+    
+    console.log(all);
 
-    console.log(music_box, mel, perc, noise, vox);
-
-    setChildren(music_box);
+    setChildren(startupRandomChildren(all));
 
     return () => {
       // cleanup
@@ -43,6 +45,12 @@ const AudioTracks = (props) => {
       setNumTracks(props.numTracks);
     }
   }, []);
+
+  const startupRandomChildren = (children) => {
+    children.forEach(element => {
+       
+    }); 
+  }  
 
   /**
    * Render the Track components.
