@@ -20,6 +20,7 @@ const Track = (props) => {
   /** How far the sample has been played, in 1/10 s */
   const [position, setPosition] = useState(0);
   const [maxPosition, setMaxPosition] = useState(100);
+  const startupOffset = useRef(0);
   const speed = 0.01;
 
   // Animation
@@ -33,14 +34,6 @@ const Track = (props) => {
     async function start() {
       const a = await checkAudio();
       const p = await setupPlayer(a);
-
-      // Set the startup wait
-      const startOffset = Math.random() * p.buffer.duration;
-      console.log(p.buffer, startOffset);
-      // Broken right now
-      setPosition((prev) => {
-        return prev + startOffset * -1;
-      });
 
       setPlayer(p);
     }
@@ -56,6 +49,7 @@ const Track = (props) => {
       setPosition(0);
       setMaxPosition(100);
       cancelAnimationFrame(requestRef.current);
+      startupOffset.current = 0;
     };
   }, []);
 
@@ -72,6 +66,13 @@ const Track = (props) => {
         console.log(animationTimeout.current);
         animationTimeout.current -= deltaTime;
       }
+    } else if (startupOffset.current > 0) {
+      // Startup animation
+      setPosition((prevPosition) => {
+        return (prevPosition + deltaTime * speed);
+      });
+      startupOffset.current -= deltaTime * speed;
+      console.log("startup", startupOffset.current);
     } else {
       setPosition((prevPosition) => {
         return (prevPosition + deltaTime * speed) % maxPosition;
@@ -121,11 +122,12 @@ const Track = (props) => {
       const panner = new Tone.Panner(1).toDestination();
       panner.pan.value = Math.random() - 0.5;
 
-      const startOffset = 0;
-      console.log("startOffset: ", startOffset);
-
       const p = new Tone.Player(audioFile, () => {
-        setPosition((prevPosition) => prevPosition - (p.buffer.duration * Math.random()));
+        // Set the startup wait
+        startupOffset.current = Math.random() * p.buffer.duration;
+        setPosition((prev) => {
+          return prev + startupOffset.current * -10;
+        });
         setMaxPosition(p.buffer.duration * 10);
         setPlayer(p);
         setLoaded(true);

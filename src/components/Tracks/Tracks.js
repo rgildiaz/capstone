@@ -33,7 +33,13 @@ const AudioTracks = (props) => {
     let vox = require.context("../../audio/vox/", false, /\.wav$/);
     vox = vox.keys().map(vox);
     
-    const all = music_box.concat(perc);
+    const all = [
+      music_box,
+      mel,
+      perc,
+      noise,
+      vox
+    ]
     
     console.log(all);
 
@@ -46,10 +52,23 @@ const AudioTracks = (props) => {
     }
   }, []);
 
-  const startupRandomChildren = (children) => {
-    children.forEach(element => {
-       
-    }); 
+  /**
+   * Select a random files to start with.
+   * @param {Array} dirs - an array of arrays of files
+   * @returns an array of files
+   */
+  const startupRandomChildren = (dirs) => {
+    let out = [];
+    for (let i = 0; i < props.numTracks; i++) {
+      const dir = dirs[Math.floor(Math.random() * dirs.length)];
+      const file = dir[Math.floor(Math.random() * dir.length)];
+
+      // remove the file from the array so it can't be selected again
+      dir.splice(dir.indexOf(file), 1);
+
+      out.push(file);
+    }
+    return out;
   }  
 
   /**
