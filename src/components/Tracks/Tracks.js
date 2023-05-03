@@ -66,6 +66,11 @@ const AudioTracks = (props) => {
       // remove the file from the array so it can't be selected again
       dir.splice(dir.indexOf(file), 1);
 
+      // remove the dir from the array if it's empty
+      if (dir.length === 0) {
+        dirs.splice(dirs.indexOf(dir), 1);
+      }
+
       out.push(file);
     }
     return out;
