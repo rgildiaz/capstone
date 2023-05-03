@@ -28,7 +28,7 @@ const Track = (props) => {
   const requestRef = useRef();
   const lastFrameTimeRef = useRef(0);
   /** Startup animation timeout */
-  const animationTimeout = useRef(1000);
+  const animationTimeout = useRef(400);
 
   useEffect(() => {
     async function start() {
@@ -68,11 +68,11 @@ const Track = (props) => {
       }
     } else if (startupOffset.current > 0) {
       // Startup animation
+      console.log("startup", startupOffset.current)
       setPosition((prevPosition) => {
         return (prevPosition + deltaTime * speed);
       });
       startupOffset.current -= deltaTime * speed;
-      console.log("startup", startupOffset.current);
     } else {
       setPosition((prevPosition) => {
         return (prevPosition + deltaTime * speed) % maxPosition;
@@ -123,10 +123,10 @@ const Track = (props) => {
       panner.pan.value = Math.random() - 0.5;
 
       const p = new Tone.Player(audioFile, () => {
-        // Set the startup wait
-        startupOffset.current = Math.random() * p.buffer.duration;
+        // Set the startup wait/position
+        startupOffset.current = Math.random() * p.buffer.duration * 5;
         setPosition((prev) => {
-          return prev + startupOffset.current * -10;
+          return prev - startupOffset.current;
         });
         setMaxPosition(p.buffer.duration * 10);
         setPlayer(p);
@@ -187,6 +187,7 @@ const Track = (props) => {
 
   // Change sample bank on click
   const handleClick = () => {
+    props.onClick(props.id);
     console.log(player, position, loaded, audio);
   };
 
