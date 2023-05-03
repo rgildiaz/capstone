@@ -2,6 +2,9 @@ import React, { useEffect, useState, useRef } from "react";
 import * as Tone from "tone";
 import config from "../../config.json";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+
 import TrackElement from "./TrackElement";
 
 /**
@@ -193,6 +196,11 @@ const Track = (props) => {
 
   return (
     <div className="track" style={{ ...style }} onClick={handleClick}>
+      <div className="delete-container">
+        <div className="button-delete" onClick={props.deleteTrack}>
+          <FontAwesomeIcon icon={faXmark} />
+        </div>
+      </div>
       {/* Wait to render until audio is loaded */}
       {!loaded ? "..." : renderElements()}
     </div>

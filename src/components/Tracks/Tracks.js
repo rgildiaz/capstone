@@ -108,6 +108,13 @@ const AudioTracks = (props) => {
     setChildren(newChildren);
   };
 
+  const deleteTrack = (id) => {
+    console.log("deleting track " + id);
+    const newChildren = [...children];
+    newChildren[id] = null;
+    setChildren(newChildren);
+  };
+
   /**
    * Render the Track components.
    * @returns an array of Track components to render
@@ -123,6 +130,7 @@ const AudioTracks = (props) => {
           started={props.started}
           audio={children}
           onClick={handleTrackClick}
+          deleteTrack={deleteTrack}
         />
       );
     }

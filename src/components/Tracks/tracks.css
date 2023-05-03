@@ -24,10 +24,39 @@
   animation: 0.3s ease-out 0s 1 enter;
 }
 
-.track:hover > *{
+.track :hover > .element{
   transform: translateY(-0.25rem);
   cursor: pointer;
   box-shadow: 0.5em 0.5em 0 0 rgba(78, 78, 78, 0.2);
+  transition: all 0.08s ease-in-out;
+
+}
+
+.delete-container {
+  position: absolute;
+  right: 0.5em;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.button-delete {
+  background-color: rgb(199, 198, 198);
+  border-radius: 3px;
+  width: 1.25em;
+  height: 90%;
+  transition: background-color 0.1s;
+  z-index: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button-delete:hover {
+  background-color: rgb(172, 172, 172);
+  box-shadow: 3px 3px 0 rgba(74, 74, 74, 0.5);
 }
 
 .add {
