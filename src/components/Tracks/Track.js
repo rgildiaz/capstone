@@ -18,6 +18,8 @@ const Track = (props) => {
   /** The Tone.Player object */
   const [player, setPlayer] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  // prevent the sample from playing too often
+  const lastPlayedRef = useRef(0);
 
   // Position
   /** How far the sample has been played, in 1/10 s */
@@ -25,6 +27,8 @@ const Track = (props) => {
   const [maxPosition, setMaxPosition] = useState(100);
   const startupOffset = useRef(0);
   const speed = 0.01;
+  // The time between each sample, in 1/10 s
+  const [interSampleTime, setInterSampleTime] = useState(0);
 
   // Animation
   /** The requestAnimationFrame ID */
@@ -36,7 +40,8 @@ const Track = (props) => {
   useEffect(() => {
     async function start() {
       const a = await checkAudio();
-      const p = await setupPlayer(a);
+      const fx = await setupFX();
+      const p = await setupPlayer(a, fx);
 
       setPlayer(p);
     }
@@ -66,18 +71,30 @@ const Track = (props) => {
     if (animationTimeout.current > 0) {
       // Wait for the sample to load before starting the animation countdown
       if (loaded) {
-        console.log(animationTimeout.current);
         animationTimeout.current -= deltaTime;
       }
     } else if (startupOffset.current > 0) {
       // Startup animation
-      console.log("startup", startupOffset.current)
       setPosition((prevPosition) => {
-        return (prevPosition + deltaTime * speed);
+        return prevPosition + deltaTime * speed;
       });
       startupOffset.current -= deltaTime * speed;
     } else {
       setPosition((prevPosition) => {
+        // Trigger the sample if position is 0
+        if (Math.round(prevPosition) === 0 && loaded) {
+          const currentTime = Date.now();
+          // use the lastPlayedRef to prevent the sample from playing too often
+          if (currentTime - lastPlayedRef.current > 150) {
+            console.log("triggered", prevPosition, maxPosition)
+            if (player.state === "started") {
+              player.restart();
+            } else {
+              player.start();
+            }
+            lastPlayedRef.current = currentTime;
+          }
+        }
         return (prevPosition + deltaTime * speed) % maxPosition;
       });
     }
@@ -85,23 +102,11 @@ const Track = (props) => {
     requestRef.current = requestAnimationFrame(animate);
   };
 
+  // This is the actual animation loop.
   useEffect(() => {
     requestRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(requestRef.current);
   }, [animate]);
-
-  // Play the sample when position reaches 0
-  const lastPlayedRef = useRef(0);
-  useEffect(() => {
-    if (Math.round(position) === 0 && loaded) {
-      const currentTime = Date.now();
-      // use the lastPlayedRef to prevent the sample from playing too often
-      if (currentTime - lastPlayedRef.current > 150) {
-        player.start();
-        lastPlayedRef.current = currentTime;
-      }
-    }
-  }, [position, loaded]);
 
   /**
    * Load the audio file and return it
@@ -116,26 +121,80 @@ const Track = (props) => {
   };
 
   /**
+   * Setup the effects chain for this track.
+   * @returns {Promise} Resolves with an array of Tone.Effect objects
+   */
+  const setupFX = async (config) => {
+    const reverb = new Tone.Reverb(1).toDestination();
+    const delay = new Tone.FeedbackDelay(0.5, 0.5).toDestination();
+    const chorus = new Tone.Chorus(4, 2.5, 0.5).toDestination();
+    const distortion = new Tone.Distortion(0.5).toDestination();
+
+    // FAKE PANNING
+    const panner = new Tone.Panner(1).toDestination();
+    panner.pan.value = Math.random() - 0.5;
+
+    return {
+      "reverb": reverb,
+      "delay": delay,
+      "chorus": chorus,
+      "distortion": distortion,
+      "panner": panner
+    };
+  };
+
+  /**
    * Setup the Tone.Player object for this track.
    * @returns {Promise} Resolves with a Tone.Player object
    */
-  const setupPlayer = async (audioFile) => {
+  const setupPlayer = async (audioFile, fx, config) => {
     if (!player) {
-      // FAKE PANNING
-      const panner = new Tone.Panner(1).toDestination();
-      panner.pan.value = Math.random() - 0.5;
-
       const p = new Tone.Player(audioFile, () => {
         // Set the startup wait/position
         startupOffset.current = Math.random() * p.buffer.duration * 5;
         setPosition((prev) => {
           return prev - startupOffset.current;
         });
-        setMaxPosition(p.buffer.duration * 10);
+
+        // Set the max position and inter-sample time
+        const inter =
+          (20 / p.buffer.duration) * Math.random() +
+          0.5 * p.buffer.duration;
+        setMaxPosition((p.buffer.duration * 10) + inter);
+        setInterSampleTime(inter);
         setPlayer(p);
         setLoaded(true);
       });
-      p.connect(panner);
+
+      // Setup the effects chain
+      // Always connect to the panner first
+      p.connect(fx["panner"]);
+      let last = fx["panner"];
+
+      // if no config is passed, randomly select effects and randomize their order
+      if (!config) {
+        // Randomly select effects
+        const effects = Object.keys(fx);
+        const numEffects = Math.floor(Math.random() * effects.length);
+        const selectedEffects = [];
+        for (let i = 0; i < numEffects; i++) {
+          const effect = effects[Math.floor(Math.random() * effects.length)];
+          selectedEffects.push(effect);
+          effects.splice(effects.indexOf(effect), 1);
+        }
+
+        // Randomize the order of the effects
+        selectedEffects.sort(() => Math.random() - 0.5);
+      }
+
+      // Connect the effects in the order they appear in the config
+      for (let i = 0; i < config.length; i++) {
+        const effect = config[i];
+        last.connect(fx[effect]);
+        last = fx[effect];
+      }        
+
+      // Set the player properties
       p.fadeIn = 0.1;
       p.fadeOut = 0.1;
 
@@ -160,6 +219,7 @@ const Track = (props) => {
       ) {
         const elementStyle = {
           width: `${(buf.duration / config.track_length) * 100}vw`,
+          marginRight: `${((interSampleTime / config.track_length) * 10) - 1}vw`,
         };
         out.push(
           <div className={"element"} key={i} style={{ ...elementStyle }}></div>
