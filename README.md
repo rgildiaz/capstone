@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Music for Web Browsers
 
 _Make ambient music in your web browser!_
@@ -29,3 +30,8 @@ Custom hooks (currently unused) are stored in the `src/hooks` directory, and any
 ## Other Notes
 
 - This site hasn't been tested on mobile and may break (😓).
+=======
+# Capstone
+
+Web audio is cool! 😎
+>>>>>>> 0270c745e5b363cbd81a218227dedd6bbc7db062
