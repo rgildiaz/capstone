@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "./tracks.css";
 import Track from "./Track";
 import AddTrack from "./AddTrack";
+
+import config from "../../config";
 
 /**
  * A container for all the audio tracks.
@@ -9,19 +11,20 @@ import AddTrack from "./AddTrack";
 const AudioTracks = (props) => {
   // This isn't really used right now, but I'm leaving it in in case
   // I want to add functionality for adding/removing tracks
-  const [numTracks, setNumTracks] = useState(props.numTracks);
+  const [numTracks, setNumTracks] = useState(config.tracks);
+  const maxTracks = 12;
 
   // all possible audio files
   const [files, setFiles] = useState(null);
+  const [children, setChildren] = useState(Array(config.tracks).fill(null));
 
-  const maxTracks = 9;
+  const colors = useRef(Array(config.tracks).fill(config.colors[0]));
 
-  // Keep track of the audio files for each child
-  const [children, setChildren] = useState(Array(props.numTracks).fill(null));
+  const [reset, setReset] = useState(false);
+  const [magic, setMagic] = useState(props.magic);
 
   useEffect(() => {
     // This has to be done manually with string literals since require.context happens at compile time
-    // pain
     // surely there's a better way to do this?????
     let music_box = require.context("../../audio/music_box/", false, /\.wav$/);
     music_box = music_box.keys().map(music_box);
@@ -40,38 +43,51 @@ const AudioTracks = (props) => {
 
     const all = [music_box, mel, perc, noise, vox];
 
-    console.log(all);
-
     setFiles(all);
-    setChildren(startupRandomChildren(all));
+    setChildren(startupRandomChildren(all, config.tracks));
 
     return () => {
       // cleanup
-      setChildren(Array(props.numTracks).fill(null));
-      setNumTracks(props.numTracks);
+      setChildren(Array(config.tracks).fill(null));
+      setNumTracks(config.tracks);
       setFiles(null);
     };
   }, []);
+
+  /**
+   * Listen for reset events from the parent component.
+   */
+  useEffect(() => {
+    if (props.reset) {
+      setChildren([getRandomFile(files.slice(), 0)]);
+      setNumTracks(1);
+      setReset(true);
+      setTimeout(() => {
+        setReset(false);
+      }, 100)
+    }
+  }, [props.reset]);
+
+  /**
+   * Listen for magic events from the parent component.
+   */
+  useEffect(() => {
+    if (props.magic) {
+      setMagic(true);
+    } else {
+      setMagic(false);
+    }
+  }, [props.magic]);
 
   /**
    * Select a random files to start with.
    * @param {Array} dirs - an array of arrays of files
    * @returns an array of files
    */
-  const startupRandomChildren = (dirs) => {
+  const startupRandomChildren = (dirs, numFiles) => {
     let out = [];
-    for (let i = 0; i < props.numTracks; i++) {
-      const dir = dirs[Math.floor(Math.random() * dirs.length)];
-      const file = dir[Math.floor(Math.random() * dir.length)];
-
-      // remove the file from the array so it can't be selected again
-      dir.splice(dir.indexOf(file), 1);
-
-      // remove the dir from the array if it's empty
-      if (dir.length === 0) {
-        dirs.splice(dirs.indexOf(dir), 1);
-      }
-
+    for (let i = 0; i < numFiles; i++) {
+      const file = getRandomFile(dirs, i);
       out.push(file);
     }
     return out;
@@ -79,20 +95,18 @@ const AudioTracks = (props) => {
 
   /**
    * Select a random file from the given array of arrays of files.
+   * Also updates the colors array to match the file.
    * @param {Array} dirs - an array of arrays of files
+   * @param {number} index - the index of the track
    * @returns a file
    */
-  const getRandomFile = (dirs) => {
-    const dir = dirs[Math.floor(Math.random() * dirs.length)];
+  const getRandomFile = (dirs, index) => {
+    const dir_index = Math.floor(Math.random() * dirs.length);
+    const dir = dirs[dir_index];
     const file = dir[Math.floor(Math.random() * dir.length)];
 
-    // remove the file from the array so it can't be selected again
-    dir.splice(dir.indexOf(file), 1);
-
-    // remove the dir from the array if it's empty
-    if (dir.length === 0) {
-      dirs.splice(dirs.indexOf(dir), 1);
-    }
+    // update colors
+    colors.current[index] = config.colors[dir_index];
 
     return file;
   };
@@ -102,17 +116,15 @@ const AudioTracks = (props) => {
    * @param {number} id - the id of the Track component
    */
   const handleTrackClick = (id) => {
-    console.log("clicked track " + id);
     const newChildren = [...children];
-    newChildren[id] = getRandomFile(files);
+    const newChild = getRandomFile(files.slice(), id);
+    newChildren[id] = newChild;
     setChildren(newChildren);
-  };
 
-  const deleteTrack = (id) => {
-    console.log("deleting track " + id);
-    const newChildren = [...children];
-    newChildren[id] = null;
-    setChildren(newChildren);
+    console.log("clicked track " + id);
+
+    // This is used in the child Track component to update audio
+    return newChild;
   };
 
   /**
@@ -130,7 +142,9 @@ const AudioTracks = (props) => {
           started={props.started}
           audio={children}
           onClick={handleTrackClick}
-          deleteTrack={deleteTrack}
+          color={colors.current[i]}
+          reset={reset}
+          magic={magic}
         />
       );
     }
@@ -142,12 +156,11 @@ const AudioTracks = (props) => {
    * @returns a button element
    */
   const renderAddTrackButton = () => {
-    console.log("rendering add track button");
     return (
       <AddTrack
         onClick={() => {
           setNumTracks(numTracks + 1);
-          setChildren([...children, getRandomFile(files)]);
+          setChildren([...children, getRandomFile(files, numTracks)]);
         }}
       />
     );
@@ -155,7 +168,7 @@ const AudioTracks = (props) => {
 
   return (
     <div className="tracks-container">
-      {!props.started || !children ? null : (
+      {!props.started || !children || props.reset ? null : (
         <>
           {renderTracks()}
           {numTracks < maxTracks ? renderAddTrackButton() : null}

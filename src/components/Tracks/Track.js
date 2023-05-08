@@ -2,21 +2,18 @@ import React, { useEffect, useState, useRef } from "react";
 import * as Tone from "tone";
 import config from "../../config.json";
 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faXmark } from "@fortawesome/free-solid-svg-icons";
-
-import TrackElement from "./TrackElement";
+// import TrackElement from "./TrackElement";
 
 /**
  * An audio track responsible for rendering and playing one sample.
- * Generates a number of element nodes to fill the track, based on the length of the associated sample.
+ * Generates a number of element nodes to fill the track based on the length of the associated sample.
  */
 const Track = (props) => {
   // Audio
   /** The audio file to use for the player */
   const [audio, setAudio] = useState(null);
   /** The Tone.Player object */
-  const [player, setPlayer] = useState(null);
+  const player = useRef(null);
   const [loaded, setLoaded] = useState(false);
   // prevent the sample from playing too often
   const lastPlayedRef = useRef(0);
@@ -43,16 +40,19 @@ const Track = (props) => {
       const fx = await setupFX();
       const p = await setupPlayer(a, fx);
 
-      setPlayer(p);
+      player.current = p;
     }
     start();
 
     return () => {
       // cleanup
-      if (player && player.state === "started") {
-        player.stop();
+      if (player.current) {
+        if (player.current.state === "started") {
+          player.current.stop();
+        }
+        player.current.dispose();
       }
-      setPlayer(null);
+      player.current = null;
       setAudio(null);
       setPosition(0);
       setMaxPosition(100);
@@ -60,6 +60,11 @@ const Track = (props) => {
       startupOffset.current = 0;
     };
   }, []);
+
+  // unmount and remount this track component when the audio file changes
+  // useEffect(() => {
+    
+  // }, [props.audio]);
 
   // Animation frames
   const animate = (timestamp) => {
@@ -86,11 +91,10 @@ const Track = (props) => {
           const currentTime = Date.now();
           // use the lastPlayedRef to prevent the sample from playing too often
           if (currentTime - lastPlayedRef.current > 150) {
-            console.log("triggered", prevPosition, maxPosition)
-            if (player.state === "started") {
-              player.restart();
+            if (player.current.state === "started") {
+              player.current.restart();
             } else {
-              player.start();
+              player.current.start();
             }
             lastPlayedRef.current = currentTime;
           }
@@ -123,9 +127,10 @@ const Track = (props) => {
   /**
    * Setup the effects chain for this track.
    * @returns {Promise} Resolves with an array of Tone.Effect objects
+   * @param {Array} config - a dict representing settings for each effect
    */
   const setupFX = async (config) => {
-    const reverb = new Tone.Reverb(1).toDestination();
+    const reverb = new Tone.Reverb(Math.random() * 6).toDestination();
     const delay = new Tone.FeedbackDelay(0.5, 0.5).toDestination();
     const chorus = new Tone.Chorus(4, 2.5, 0.5).toDestination();
     const distortion = new Tone.Distortion(0.5).toDestination();
@@ -135,34 +140,44 @@ const Track = (props) => {
     panner.pan.value = Math.random() - 0.5;
 
     return {
-      "reverb": reverb,
-      "delay": delay,
-      "chorus": chorus,
-      "distortion": distortion,
-      "panner": panner
+      reverb: reverb,
+      delay: delay,
+      chorus: chorus,
+      // distortion: distortion,
+      panner: panner,
     };
   };
 
   /**
    * Setup the Tone.Player object for this track.
    * @returns {Promise} Resolves with a Tone.Player object
+   * @param {AudioBuffer} audioFile - the audio file to use for the player
+   * @param {Array} fx - an array of Tone.Effect objects
+   * @param {Array} config - an array of strings representing the effects to use
    */
   const setupPlayer = async (audioFile, fx, config) => {
-    if (!player) {
+    if (!player.current) {
       const p = new Tone.Player(audioFile, () => {
         // Set the startup wait/position
-        startupOffset.current = Math.random() * p.buffer.duration * 5;
+        if (props.id === 0) {
+          // shouldn't have a long startup offset for the first track
+          startupOffset.current = 5;
+        } else {
+          startupOffset.current = Math.random() * p.buffer.duration * 5;
+        }
         setPosition((prev) => {
           return prev - startupOffset.current;
         });
 
         // Set the max position and inter-sample time
         const inter =
-          (20 / p.buffer.duration) * Math.random() +
-          0.5 * p.buffer.duration;
-        setMaxPosition((p.buffer.duration * 10) + inter);
+          (20 / p.buffer.duration) * Math.random() + // random offset inverse to sample length
+          0.5 * p.buffer.duration + // minimum offset
+          100 * Math.random() + // relatively long random offset
+          25; // minimum inter-sample time
+        setMaxPosition(p.buffer.duration * 10 + inter);
         setInterSampleTime(inter);
-        setPlayer(p);
+        player.current = p;
         setLoaded(true);
       });
 
@@ -175,6 +190,8 @@ const Track = (props) => {
       if (!config) {
         // Randomly select effects
         const effects = Object.keys(fx);
+        // remove panning
+        effects.splice(effects.indexOf("panner"), 1);
         const numEffects = Math.floor(Math.random() * effects.length);
         const selectedEffects = [];
         for (let i = 0; i < numEffects; i++) {
@@ -185,6 +202,8 @@ const Track = (props) => {
 
         // Randomize the order of the effects
         selectedEffects.sort(() => Math.random() - 0.5);
+
+        config = selectedEffects;
       }
 
       // Connect the effects in the order they appear in the config
@@ -192,7 +211,7 @@ const Track = (props) => {
         const effect = config[i];
         last.connect(fx[effect]);
         last = fx[effect];
-      }        
+      }
 
       // Set the player properties
       p.fadeIn = 0.1;
@@ -209,7 +228,8 @@ const Track = (props) => {
    */
   const renderElements = () => {
     let out = [];
-    const buf = player.buffer;
+    const [r, g, b] = props.color;
+    const buf = player.current.buffer;
     if (buf !== null && buf.duration !== 0) {
       // Render enough elements to always fill the screen
       for (
@@ -219,7 +239,10 @@ const Track = (props) => {
       ) {
         const elementStyle = {
           width: `${(buf.duration / config.track_length) * 100}vw`,
-          marginRight: `${((interSampleTime / config.track_length) * 10) - 1}vw`,
+          marginRight: `${
+            (interSampleTime / config.track_length) * 10 - 0.5
+          }vw`,
+          backgroundColor: `rgba(${r}, ${g}, ${b}, 0.5)`,
         };
         out.push(
           <div className={"element"} key={i} style={{ ...elementStyle }}></div>
@@ -228,7 +251,7 @@ const Track = (props) => {
         );
       }
     } else {
-      console.log("Buffer not loaded: ", player.buf);
+      console.log("Buffer not loaded: ", player.current.buf);
     }
 
     return (
@@ -241,28 +264,70 @@ const Track = (props) => {
     );
   };
 
-  const [r, g, b] = config.rgb;
-
   // dynamic styles
   const style = {
-    backgroundColor: `rgba(${r}, ${g}, ${b}, 0.5)`,
+    backgroundColor: `rgba(150, 149, 140, 0.5)`,
   };
 
-  // Change sample bank on click
-  const handleClick = () => {
-    props.onClick(props.id);
-    console.log(player, position, loaded, audio);
+  const resetFX = async () => {
+    return new Promise((resolve) => {
+      const fx = setupFX();
+      resolve(fx);
+    });
   };
+
+  const resetPlayer = async (audioFile, fx) => {
+    return new Promise((resolve) => {
+      const p = setupPlayer(audioFile, fx);
+      resolve(p);
+    });
+  };
+
+  // Rerender track on click
+  const handleClick = () => {
+    // Reset the track
+    async function reset() {
+      return new Promise((resolve) => {
+        if (player.current) {
+          player.current.stop();
+          player.current.dispose();
+          player.current = null;
+        }
+
+        setPosition(0);
+        setLoaded(false);
+        setAudio(null);
+        setMaxPosition(0);
+        setInterSampleTime(0);
+        startupOffset.current = 100;
+
+        resolve();
+      });
+    }
+
+    async function start() {
+      await reset();
+
+      // Get the new audio file
+      const a = await props.onClick(props.id);
+      const fx = await resetFX();
+      const p = await resetPlayer(a, fx);
+
+      player.current = p;
+    }
+    start();
+  };
+
+  useEffect(() => {
+    if (props.reset) {
+      handleClick();
+    }
+  }, [props.reset])
 
   return (
     <div className="track" style={{ ...style }} onClick={handleClick}>
-      <div className="delete-container">
-        <div className="button-delete" onClick={props.deleteTrack}>
-          <FontAwesomeIcon icon={faXmark} />
-        </div>
-      </div>
-      {/* Wait to render until audio is loaded */}
       {!loaded ? "..." : renderElements()}
+      {/* <div>{loaded ? "true" : "false"}</div> */}
     </div>
   );
 };

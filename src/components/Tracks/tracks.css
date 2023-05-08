@@ -95,7 +95,7 @@
 .element {
   height: 100%;
   margin: 0.25vh, 0;
-  background-color: rgba(46, 94, 191, 0.266);
+  /* background-color: rgba(46, 94, 191, 0.266); */
   border-radius: 4px;
   border: 2px solid rgb(75, 75, 75);
   opacity: 1;

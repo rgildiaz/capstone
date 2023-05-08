@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import * as Tone from "tone";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faWandMagicSparkles, faVolumeMute, faVolumeDown } from "@fortawesome/free-solid-svg-icons";
+import { faWandMagicSparkles, faVolumeMute, faVolumeDown, faRotateRight } from "@fortawesome/free-solid-svg-icons";
 
 import "./menu.css";
 
@@ -17,11 +17,19 @@ const MenuBar = (props) => {
     if (magic) {
       setMagic(false);
       setMagicClass("");
+      props.magicToggle(false);
     } else {
       setMagic(true);
       setMagicClass("enabled");
+      props.magicToggle(true);
     }
   };
+
+  const resetOnClick = () => {
+    props.reset();
+    setMagic(false);
+    setMagicClass("");
+  }
 
   const muteOnClick = () => {
     if (mute) {
@@ -41,6 +49,11 @@ const MenuBar = (props) => {
         <div className="menu-bar">
           <div className={"menu-bar-item " + magicClass} onClick={magicOnClick}>
             <FontAwesomeIcon icon={faWandMagicSparkles} />
+          </div>
+          <div className="menu-bar-item reset" onClick={resetOnClick}>
+            <div className="rotate-wrapper">
+              <FontAwesomeIcon icon={faRotateRight} />
+            </div>
           </div>
           <div className={"menu-bar-item " + muteClass} onClick={muteOnClick}>
             {
