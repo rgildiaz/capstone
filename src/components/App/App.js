@@ -58,6 +58,7 @@ function App(props) {
 
   const resetOnClick = () => {
     setReset(true);
+    setMagic(false);
     setTimeout(() => {
       setReset(false);
     }, 50);
@@ -68,7 +69,7 @@ function App(props) {
   }
 
   return (
-    <div className="App">
+    <div className={"App" + (magic ? " magic": "")}>
       {!isLoaded ? (
         <div className="loading">Loading...</div>
       ) : (

@@ -34,6 +34,11 @@ const Track = (props) => {
   /** Startup animation timeout */
   const animationTimeout = useRef(400);
 
+  // Magic
+  // decremented in the animation loop, triggers event when it reaches 0
+  const magicTimeout = useRef(0);
+  const [magicFirstPlayed, setMagicFirstPlayed] = useState(false);
+
   useEffect(() => {
     async function start() {
       const a = await checkAudio();
@@ -61,10 +66,13 @@ const Track = (props) => {
     };
   }, []);
 
-  // unmount and remount this track component when the audio file changes
-  // useEffect(() => {
-    
-  // }, [props.audio]);
+  useEffect(() => {
+    magicTimeout.current = Math.random() * 10000;
+    if (props.magic) {
+    } else {
+      setMagicFirstPlayed(false);
+    }
+  }, [props.magic]);
 
   // Animation frames
   const animate = (timestamp) => {
@@ -103,6 +111,25 @@ const Track = (props) => {
       });
     }
 
+    // Magic
+    if (props.magic) {
+      if (magicTimeout.current <= 0) {
+        if (player.current.state !== "started") {
+          if (magicFirstPlayed) {
+            handleClick();
+            setMagicFirstPlayed(false);
+          } else {
+            setMagicFirstPlayed(true);
+          }
+        } else {
+          // console.log("magic skipped", props.id);
+        }
+        magicTimeout.current = Math.random() * 50000;
+        // console.log("magic timeout", props.id, magicTimeout.current);
+      }
+      magicTimeout.current -= deltaTime;
+    }
+    
     requestRef.current = requestAnimationFrame(animate);
   };
 
@@ -299,7 +326,7 @@ const Track = (props) => {
         setAudio(null);
         setMaxPosition(0);
         setInterSampleTime(0);
-        startupOffset.current = 100;
+        startupOffset.current = 200;
 
         resolve();
       });
@@ -317,12 +344,6 @@ const Track = (props) => {
     }
     start();
   };
-
-  useEffect(() => {
-    if (props.reset) {
-      handleClick();
-    }
-  }, [props.reset])
 
   return (
     <div className="track" style={{ ...style }} onClick={handleClick}>
